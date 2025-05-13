@@ -2,62 +2,60 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 # Datos experimentales
-V = np.array([10, 20, 30, 40, 50, 60])  # Velocidad del aire (m/s)
-Cd = np.array([0.32, 0.30, 0.28, 0.27, 0.26, 0.25])  # Coeficiente de arrastre
+T = np.array([200, 250, 300, 350, 400])  # Temperatura de entrada (°C)
+eficiencia = np.array([30, 35, 40, 46, 53])  # Eficiencia (%)
 
 # 1. Interpolación de Newton
-def newton_interpolation(x, y):
+def interpolacion_newton(x, y):
     n = len(x)
-    coef = np.zeros([n, n])
-    coef[:,0] = y
+    coeficientes = np.zeros([n, n])
+    coeficientes[:,0] = y
     
     for j in range(1, n):
         for i in range(n - j):
-            coef[i,j] = (coef[i+1, j-1] - coef[i, j-1]) / (x[i+j] - x[i])
+            coeficientes[i,j] = (coeficientes[i+1, j-1] - coeficientes[i, j-1]) / (x[i+j] - x[i])
     
-    return coef[0]
+    return coeficientes[0]
 
-def evaluate_poly(coef, x, x_val):
+def evaluar_polinomio(coef, x, x_val):
     n = len(coef)
-    result = coef[0]
-    product = 1
+    resultado = coef[0]
+    producto = 1
     
     for i in range(1, n):
-        product *= (x_val - x[i-1])
-        result += coef[i] * product
+        producto *= (x_val - x[i-1])
+        resultado += coef[i] * producto
     
-    return result
+    return resultado
 
-# Calculamos los coeficientes
-coefficients = newton_interpolation(V, Cd)
+# Calculamos los coeficientes del polinomio
+coeficientes = interpolacion_newton(T, eficiencia)
 
 # Mostramos la ecuación
 print("Polinomio de interpolación de Newton:")
-print(f"Cd(V) = {coefficients[0]:.5f}", end="")
-for i in range(1, len(coefficients)):
-    print(f" + {coefficients[i]:.5f}", end="")
+print(f"η(T) = {coeficientes[0]:.5f}", end="")
+for i in range(1, len(coeficientes)):
+    print(f" + {coeficientes[i]:.5f}", end="")
     for j in range(i):
-        print(f"(V - {V[j]})", end="")
+        print(f"(T - {T[j]})", end="")
 print("\n")
 
-# 2. Estimación para 35 m/s
-V_estimate = 35
-Cd_estimate = evaluate_poly(coefficients, V, V_estimate)
-print(f"2. El coeficiente de arrastre estimado para V = {V_estimate} m/s es: {Cd_estimate:.4f}")
+# 2. Estimación para 275°C
+T_estimado = 275
+eficiencia_estimada = evaluar_polinomio(coeficientes, T, T_estimado)
+print(f"2. La eficiencia estimada para una temperatura de {T_estimado}°C es: {eficiencia_estimada:.2f}%")
 
 # 3. Gráfica de la interpolación
-V_interp = np.linspace(min(V), max(V), 100)
-Cd_interp = [evaluate_poly(coefficients, V, vi) for vi in V_interp]
+T_interp = np.linspace(min(T), max(T), 100)
+eficiencia_interp = [evaluar_polinomio(coeficientes, T, Ti) for Ti in T_interp]
 
 plt.figure(figsize=(10, 6))
-plt.plot(V, Cd, 'ro', markersize=8, label='Datos experimentales')
-plt.plot(V_interp, Cd_interp, 'b-', linewidth=2, label='Interpolación de Newton')
-plt.plot(V_estimate, Cd_estimate, 'gs', markersize=10, 
-         label=f'Estimación para {V_estimate} m/s: {Cd_estimate:.4f}')
-plt.xlabel('Velocidad del aire (m/s)', fontsize=12)
-plt.ylabel('Coeficiente de arrastre (Cd)', fontsize=12)
-plt.title('Interpolación de Newton para Coeficiente de Arrastre vs Velocidad', fontsize=14)
-plt.grid(True, linestyle='--', alpha=0.7)
-plt.legend(fontsize=12)
-plt.tight_layout()
+plt.plot(T, eficiencia, 'ro', label='Datos experimentales')
+plt.plot(T_interp, eficiencia_interp, 'b-', label='Interpolación de Newton')
+plt.plot(T_estimado, eficiencia_estimada, 'gs', label=f'Estimación para {T_estimado}°C')
+plt.xlabel('Temperatura de entrada (°C)')
+plt.ylabel('Eficiencia (%)')
+plt.title('Interpolación de Newton para Eficiencia vs Temperatura')
+plt.grid(True)
+plt.legend()
 plt.show()
