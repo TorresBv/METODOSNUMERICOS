@@ -1,0 +1,48 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Datos experimentales
+presion = np.array([50, 70, 90, 110, 130])  # Presión (kPa)
+caudal = np.array([15, 21, 27, 33, 39])     # Caudal (L/min)
+
+# 1. Ajuste lineal por mínimos cuadrados
+n = len(presion)
+sum_x = np.sum(presion)
+sum_y = np.sum(caudal)
+sum_xy = np.sum(presion * caudal)
+sum_x2 = np.sum(presion**2)
+
+# Cálculo de pendiente (b) e intercepto (a)
+b = (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x**2)
+a = (sum_y - b * sum_x) / n
+
+# Función de regresión lineal
+def caudal_modelo(presion):
+    return b * presion + a
+
+# 2. Predicción para P = 100 kPa
+presion_pred = 100
+caudal_pred = caudal_modelo(presion_pred)
+
+# Cálculo del coeficiente de determinación R²
+y_pred = caudal_modelo(presion)
+ss_res = np.sum((caudal - y_pred)**2)
+ss_tot = np.sum((caudal - np.mean(caudal))**2)
+r2 = 1 - (ss_res / ss_tot)
+
+# Resultados
+print(f"Modelo lineal: Q(P) = {b:.4f}P + {a:.4f}")
+print(f"Predicción para P = 100 kPa: Q = {caudal_pred:.2f} L/min")
+print(f"Coeficiente de determinación R² = {r2:.4f}")
+
+# Gráfica
+plt.figure(figsize=(8, 5))
+plt.scatter(presion, caudal, color='red', label='Datos experimentales')
+plt.plot(presion, caudal_modelo(presion), color='blue', label=f'Regresión: Q(P) = {b:.3f}P + {a:.3f}')
+plt.scatter(presion_pred, caudal_pred, color='green', marker='s', label=f'Predicción (100 kPa): {caudal_pred:.1f} L/min')
+plt.xlabel('Presión (kPa)')
+plt.ylabel('Caudal (L/min)')
+plt.title('Relación Presión-Caudal en una Tubería')
+plt.grid(linestyle='--', alpha=0.6)
+plt.legend()
+plt.show()
